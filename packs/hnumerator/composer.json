@@ -1,0 +1,19 @@
+{
+    "name": "1datr/hnumerator",
+    "description": "Universal tree code parser",
+    "type": "package",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anton Kuzmenko",
+            "email": "the1datr@ya.ru"
+        }
+    ],
+    "require": {
+    	"php": ">=5.4.0",
+    	"the1utils" : "1.x"
+    },
+    "autoload":{
+    	"classmap":["src"]
+    }
+}
