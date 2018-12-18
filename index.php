@@ -11,17 +11,20 @@ $_treep = new \treep\TreeP();
 		 shields - массив экранирующих последовательностей [рег. выр. начало, рег. выр. конец]
  * */
 
-/*
+
 $compiled = $_treep->compile([
 	'code'=>file_get_contents('./example.js'),
 	'nstart'=>'/((while|for|foreach|if|elseif|switch|try|catch|finally)\((.+)\).*$\s*\{)|((while|for|foreach|if|elseif|switch)\((.+)\).*\s*\{)|(else\s*\{)/',		
 	'nend'=>'#}#',
 	'comments'=>['#/\*.*\*/#Uis','#\/\/.*$#m'],
-/*	'shields'=>[
-				['"','"','clear'=>false],],
+	'shields'=>['#\\".*\\"#Uis',"#'.*'#Uis",],
+	/*'shields'=>['"','"','clear'=>false],*/
 ]);
-*/
-
+if(!empty($compiled['error']))
+{
+	echo "<h4>".$compiled['error']."</h4>";
+}
+/*
 $ms = new MString("uurrr{if(88) 87878 
 if(88==88){
 ====
@@ -32,6 +35,7 @@ if(88==88){
 * {
 * 		
 */
+/*
 }");
 $ms->addLayer('brackets', '#\{if\((.*)\)#Uis');
 $ms->addLayer('comments', ['#\/\*.*\*\/#Uis','#\/\/.*$#m']);
@@ -60,4 +64,4 @@ for($i=0;$i<strlen($ms->content);$i++)
 foreach($ms->getLayer('comments')->points() as $pt)
 {
 	echo " ".$pt->position;
-}
+}*/

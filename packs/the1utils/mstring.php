@@ -5,12 +5,17 @@ namespace the1utils
 	{
 		VAR $type;
 		VAR $position;
+		VAR $pos_end;
 		VAR $M_BEGIN;
 		VAR $M_END;
+		VAR $_LAYER;		
 		VAR $regexp_data=NULL;
-		function __construct($xpos,$type,$r_e_data)
+		VAR $brother=NULL;
+		function __construct($xpos,$type,$r_e_data,$_L)
 		{
 			$this->position = $xpos;
+			$this->_LAYER=$_L;
+			$this->pos_end = $xpos+strlen($r_e_data[0][0])-1;
 			$this->type = $type;
 			$this->regexp_data = $r_e_data;
 			switch($this->type)
@@ -22,6 +27,16 @@ namespace the1utils
 						$this->M_END=$this;
 					break;
 			}
+		}
+		
+		function detect_brother()
+		{
+			
+		}
+		
+		function contains($_pos)
+		{
+			//if($this.position<=$pos)&&($this->M_END.position)
 		}
 		
 		function set_begin($m_beg)
@@ -45,29 +60,30 @@ namespace the1utils
 			$this->parent_mstr = $parent;
 			$this->regexp_data = $r_e_data;
 			$this->points = [];
-			$this->add_points($regexp_res);
-			/*foreach($regexp_res as $rr)			
-			{				
-				$this->points[] = new MSLMarker($rr[0][1], 'start',$rr);
-				$start_marker_idx = count($this->points)-1;				
-				$this->points[] = new MSLMarker($rr[0][1]+strlen($rr[0][0])-1, 'end',$rr);
-				$end_marker_idx = count($this->points)-1;
-				$this->points[$start_marker_idx]->set_end($this->points[$end_marker_idx]);
-				$this->points[$end_marker_idx]->set_end($this->points[$start_marker_idx]);
-			}*/
-		}
-		
+			$this->add_points($regexp_res);			
+		}	
+				
 		function add_points($_points)
 		{
 			foreach ($_points as $rr)
 			{
-				$this->points[] = new MSLMarker($rr[0][1], 'start',$rr);
+				$this->points[] = new MSLMarker($rr[0][1], 'start',$rr,$this);
 				$start_marker_idx = count($this->points)-1;
-				$this->points[] = new MSLMarker($rr[0][1]+strlen($rr[0][0])-1, 'end',$rr);
+				$this->points[] = new MSLMarker($rr[0][1]+strlen($rr[0][0])-1, 'end',$rr,$this);
 				$end_marker_idx = count($this->points)-1;
 				$this->points[$start_marker_idx]->set_end($this->points[$end_marker_idx]);
 				$this->points[$end_marker_idx]->set_end($this->points[$start_marker_idx]);
 			}
+		}
+		
+		function in_layer($pos)
+		{
+			foreach($this->points as $idx=> $p)
+			{
+				if($p->contains($pos))
+					return $p;
+			}
+			return null;
 		}
 		
 		function points()
@@ -75,7 +91,7 @@ namespace the1utils
 			return $this->points;
 		}	
 		// get markers between pos1 and pos2
-		function get_markers($pos1=-1,$pos2=-1)
+		public function get_markers($pos1=-1,$pos2=-1)
 		{
 			if($pos2<0)
 				$pos2 = count($this->points);
@@ -177,7 +193,43 @@ namespace the1utils
 					{
 						$this->layers[$l_zayac]->delete($pos);
 					}
+					$this->layers[$l_zayac]->points = \the1utils\utils::rebuild_array($this->layers[$l_zayac]->points);
 				}
+			}
+		}
+		// сопоставить маркеры из одного леера с маркерами из другого леера
+	/*	function juxtapose($layer_start,$layer_end,$pos=0)
+		{
+			$res_arr=[];
+			foreach($this->layers[$layer_start]->points() as $idx => $p_curr)
+			{
+				$cl_start = $this->find_closest_in_layer($p_curr,$layer_start);
+				$cl_end = $this->find_closest_in_layer($p_curr,$layer_end);
+				if($cl_end.position<$cl_start.position)
+				{
+					$res_arr[]=['start'=>$p_curr,'end'=>$cl_end];
+				}
+				else 
+				{
+					$ctr=1;
+					$go=1;
+					while($go)
+					{
+						$cl_start = $this->find_closest_in_layer($p_curr,$layer_start);
+						$cl_end = $this->find_closest_in_layer($p_curr,$layer_end);
+						
+					}
+				}
+			}
+			return $res_arr;
+		}*/
+		
+		public function find_closest_in_layer($pos,$_layer)
+		{
+			foreach($this->layers[$_layer]->points() as $idx => $p)
+			{
+				if($p.position>$pos)
+					return $p;
 			}
 		}
 		

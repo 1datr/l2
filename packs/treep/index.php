@@ -281,10 +281,90 @@ use the1utils\MString;
 				
 			$ms_code = new MString($params['code']);
 			$ms_code->addLayer('comments', $params['comments']);
-			foreach($ms_code->getLayer('comments')->points() as $p)
+			$ms_code->addLayer('shields', $params['shields']);
+			$ms_code->addLayer('nstart', $params['nstart']);
+			$ms_code->addLayer('nend', $params['nend']);
+			$ms_code->eat('shields', 'comments');
+			$ms_code->eat('shields', 'nstart');
+			$ms_code->eat('shields', 'nend');
+			$ms_code->eat('comments', 'nstart');
+			$ms_code->eat('comments', 'nend');
+			foreach($ms_code->getLayer('nstart')->points() as $p)
 			{
 				echo " ".$p->position;
 			}
+			
+			$numerator = new \hnumerator\HNnumerator();
+			$node_root = new tn_object(true);
+			$root->number = $numerator->getText();
+			$node_root->numerator_obj = $numerator;
+			
+			$curr_node = $node_root;
+			$start_nodes = $ms_code->getLayer('nstart')->points();
+			$end_nodes = $ms_code->getLayer('nend')->points();
+			
+		//	$juxtaposed = $ms_code->juxtapose('nstart','nend');
+			if(count($start_nodes)!=count($end_nodes))
+			{
+				return ['error'=>'Parse error '];
+			}
+			
+			$res = $this->get_brother_node($ms_code,$curr_node);
+		//	print_r($end_nodes);
+		
+		/*	foreach($start_nodes as $idx => $p)
+			{
+				$newnode = new tn_object();
+				$curr_node->add_item($newnode);
+				print_r($end_nodes[$idx]);
+				if(!isset($start_nodes[$idx+1]))
+				{
+					
+				}
+				elseif($end_nodes[$idx].position<$start_nodes[$idx+1].position)
+				{
+					
+				}
+				else 
+				{
+					
+				}
+			}*/
+		}
+		
+		private function get_brother_node($ms_code,$curr_node,$mpos=0)
+		{
+			$less = 0;
+			echo "=$mpos=";
+			$p_end = $ms_code->getLayer('nend')->points()[$mpos];
+		//	print_r($p_end);
+			if($mpos+1<count($ms_code->getLayer('nstart')->points())-1)
+			{	
+				//echo ";;;";
+				$start_next = $ms_code->getLayer('nstart')->points()[$mpos+1];
+			//	print_r($start_next);
+				//echo "++".$p_end->position."++";
+				$less=($p_end->position<$start_next->position);
+				
+			}
+			else 
+				$less=1;
+			//print_r($start_next);
+			
+			if($less)
+			{
+				$newnode = new tn_object();
+				$curr_node->add_item($newnode);
+			}
+			else 
+			{
+				$node2 = new tn_object();
+				$res = $this->get_brother_node($ms_code,$node2,$mpos+1);
+				if(!$res) return false;					
+				$curr_node->add_item($node2);
+				
+			}
+			return true;
 		}
 		
 		private function detect_pieces_and_insert($_node_str,$params,$the_node)

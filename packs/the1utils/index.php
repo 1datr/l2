@@ -12,6 +12,25 @@ class utils
 			return false;
 		return (get_class($obj)==$_class);
 	}
+	 
+	static function rebuild_array($arr)
+	{
+		$new_array=[];
+		$total_idx=0;
+		foreach($arr as $idx=>$val)
+		{
+			if(is_int($idx))
+			{
+				$new_array[$total_idx]=$val;
+			}
+			else 
+			{
+				$new_array[$idx]=$val;
+			}
+			$total_idx++;
+		}
+		return $new_array;
+	}
 	
 	static function merge_arrays($array1,$array2)
 	{
