@@ -81,6 +81,24 @@ namespace treep{
 			}
 		}
 		// удалить комментарии из строки если нужно
+		private function clear_comments2($params,&$the_str)
+		{
+			if($params['delete_comments'])
+			{
+				if(is_array($params['comments']))
+				{
+					foreach ($params['comments'] as $idx => $_str)
+					{
+						$the_str = preg_replace($_str, "", $the_str);
+					}
+				}
+				elseif(is_string($params['comments']))
+				{
+					$the_str = preg_replace($params['comments'], "", $the_str);
+				}
+			}
+		}
+		// удалить комментарии из строки если нужно
 		private function clear_comments($params,&$the_str)
 		{
 			if($params['delete_comments'])
@@ -261,7 +279,7 @@ namespace treep{
 			],$params);
 				
 			$comments_map = $this->make_comments_map($params);
-		//	\the1utils\utils::mul_dbg($comments_map);		
+			// \the1utils\utils::mul_dbg($comments_map);		
 							
 			$n_starts=[];
 			preg_match_all($params['nstart'], $params['code'],$n_starts, PREG_OFFSET_CAPTURE);
@@ -279,6 +297,8 @@ namespace treep{
 			// экранированные регионы
 			$shilds = $this->get_shields_areas($params);
 		//	\the1utils\utils::mul_dbg($shilds);
+		
+			//$params['code']=$this->clear_comments($params['code'],$shilds);
 		
 			//print_r($n_ends[0]);
 			if(count($n_ends[0])>0)
@@ -323,9 +343,9 @@ namespace treep{
 
 				ksort($pointbuf);
 				// убираем точки, оказавшиеся в экранированных регионах
-				\the1utils\utils::mul_dbg($pointbuf);
-				\the1utils\utils::mul_dbg($shilds);
-				\the1utils\utils::mul_dbg($comments_map);
+			//	\the1utils\utils::mul_dbg($pointbuf);
+			//	\the1utils\utils::mul_dbg($shilds);
+			//	\the1utils\utils::mul_dbg($comments_map);
 				
 				$this->filter_by_map($shilds,$pointbuf);
 				$this->filter_by_map($comments_map,$pointbuf);				
@@ -354,7 +374,7 @@ namespace treep{
 					{
 						$substr = substr($params['code'],$last_pos,$pos-$last_pos);
 						$this->delete_shilds($params,$substr);
-						$this->clear_comments($params,$substr);
+					//	$this->clear_comments($params,$substr);
 
 						$substr_node = new tn_text($substr);
 
@@ -375,7 +395,8 @@ namespace treep{
 					{
 						$substr = substr($params['code'],$last_pos,$pos-$last_pos);
 						$this->delete_shilds($params,$substr);
-						$this->clear_comments($params,$substr);
+						//$this->clear_comments($params,$substr);
+				//		\the1utils\utils::mul_dbg($substr);
 
 						$substr_node = new tn_text($substr);
 
@@ -402,9 +423,12 @@ namespace treep{
 
 				$substr = substr($params['code'],$last_pos,strlen($params['code'])-$last_pos);
 				$this->delete_shilds($params,$substr);
-				$this->clear_comments($params,$substr);
-
+				// $this->clear_comments($params,$substr);
+				
+			//	\the1utils\utils::mul_dbg($substr);
 				$substr_node = new tn_text($substr);
+				
+				$this->detect_pieces_and_insert($substr,$params,$root);
 					
 				$pos = strlen($params['code']);
 				$root->add_item($substr_node); // добавить айтем
@@ -420,6 +444,20 @@ namespace treep{
 				return $root;
 			}
 
+		}
+		
+		private function detect_pieces_and_insert($_node_str,$params,$the_node)
+		{
+			$params2=$params;
+			$params2['code']=$_node_str;
+			
+			$comments_map = $this->make_comments_map($params2);
+			
+			$_shields = $this->get_shields_areas($params2);
+			foreach($comments_map as $comment)
+			{
+				
+			}
 		}
 
 	}

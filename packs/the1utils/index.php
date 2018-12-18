@@ -1,10 +1,18 @@
 <?php
 namespace the1utils
 {	
+	require_once __DIR__.'/mstring.php';
 
 class utils
 {
 
+	static function is_object_of($obj,$_class)
+	{
+		if(!is_object($obj))
+			return false;
+		return (get_class($obj)==$_class);
+	}
+	
 	static function merge_arrays($array1,$array2)
 	{
 		$res = $array1;
@@ -60,7 +68,7 @@ class utils
 		return substr($str_1,0,$pos).$str_2.substr($str_1,$pos);
 	}
 	
-	static function replace_substr($_str,$pos1,$pos2,$_replace)
+	/*static function replace_substr($_str,$pos1,$pos2,$_replace)
 	{
 		$str_left='';
 		$str_right='';
@@ -69,6 +77,42 @@ class utils
 		if($pos2+1<strlen($_str)-1) $str_right=substr($_str,$pos2+1);
 		
 		return $str_left.$_replace.$str_right;
+	}*/
+	
+	static function replace_substr($_str,$par1,$par2,$_replace=NULL)
+	{
+		if($_replace==null)
+		{
+			$_replace = $par2;
+			for($i=0;$i<count($par1);$i++)
+			{
+				$start = $par1['start'];
+				$end = $par1['end'];
+				$_str = replace_substr($_str,$start,$end,$_replace);
+				$oldlen = $end-$start+1;				
+				for($j=$i+1;$j<count($par1);$j++)
+				{					
+					if($par[$j]['start']>$par[$i]['start'])
+					{
+						$par[$j]['start']=$par[$j]['start']-$oldlen+strlen($_replace);
+						$par[$j]['end']=$par[$j]['end']-$oldlen+strlen($_replace);
+					}
+				}
+			}
+		}
+		else 
+		{
+			$pos1 = $par1;
+			$pos2 = $par2;
+			
+			$str_left='';
+			$str_right='';
+	
+			if($pos1>0) $str_left=substr($_str,0,$pos1);
+			if($pos2+1<strlen($_str)-1) $str_right=substr($_str,$pos2+1);
+	
+			return $str_left.$_replace.$str_right;
+		}
 	}
 	
 	static function utf8ize($d) {

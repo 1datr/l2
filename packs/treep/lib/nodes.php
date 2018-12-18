@@ -31,8 +31,7 @@ namespace treep{
 			return $this->_TEXT;
 		}
 			
-	}
-	
+	}	
 	
 	class tn_object extends treep_node
 	{
@@ -92,6 +91,23 @@ namespace treep{
 			}
 		}
 		
+	}
+	
+	class tn_comment
+	{
+		VAR $_TEXT;
+		
+		function __construct($_text_)
+		{
+			$this->_STANDSTILL = true;
+			$this->_TEXT=$_text_;
+			$this->_IS_TEXT = true;
+		}
+		
+		function text()
+		{
+			return $this->_TEXT;
+		}
 	}
 
 }
