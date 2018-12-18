@@ -22,21 +22,42 @@ $compiled = $_treep->compile([
 ]);
 */
 
-$ms = new MString("aaa{if(h==7) sss/*{if(x==0) */ss{if(y==9) 6666 }}}");
+$ms = new MString("uurrr{if(88) 87878 
+if(88==88){
+====
+// 99990
+++++
+}
+/*
+* {
+* 		
+*/
+}");
 $ms->addLayer('brackets', '#\{if\((.*)\)#Uis');
+$ms->addLayer('comments', ['#\/\*.*\*\/#Uis','#\/\/.*$#m']);
+$ms->addLayer('shields', "#\'(.*)\'/#Uis");
 
-echo $ms->content."<br />";
-foreach($ms->getLayer('brackets')->points() as $p)
+?>
+<table border="1">
+<tr>
+<?php 
+for($i=0;$i<strlen($ms->content);$i++)
 {
-	echo " ".$p->position;
+	?><td><?=$i?></td><?php 
 }
-
-$ms2=$ms->substr($ms->getLayer('brackets')->points()[1], -1);
-//print_r($ms->getLayer('brackets')->points()[0]);
-echo "<br />".$ms2->content."<br />";
-foreach($ms2->getLayer('brackets')->points() as $p)
+?>
+</tr>
+<tr>
+<?php 
+for($i=0;$i<strlen($ms->content);$i++)
 {
-	echo " ".$p->position;
+	?><td><?=$ms->content[$i]?></td><?php 
 }
-//print_r($ms);
-//var_dump($compiled);
+?>
+</tr>
+</table>
+<?php 
+foreach($ms->getLayer('comments')->points() as $pt)
+{
+	echo " ".$pt->position;
+}

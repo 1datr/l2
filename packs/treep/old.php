@@ -32,8 +32,7 @@ ddd
 namespace treep{
 	
 	use the1utils;
-use the1utils\MString;
-		
+	
 	require_once __DIR__.'/lib/nodes.php';
 
 	class TreeP
@@ -279,12 +278,172 @@ use the1utils\MString;
 					'delete_comments'=>true,
 			],$params);
 				
-			$ms_code = new MString($params['code']);
-			$ms_code->addLayer('comments', $params['comments']);
-			foreach($ms_code->getLayer('comments')->points() as $p)
+			$comments_map = $this->make_comments_map($params);
+			// \the1utils\utils::mul_dbg($comments_map);		
+							
+			$n_starts=[];
+			preg_match_all($params['nstart'], $params['code'],$n_starts, PREG_OFFSET_CAPTURE);
+				
+			$n_ends=[];
+			preg_match_all($params['nend'], $params['code'],$n_ends, PREG_OFFSET_CAPTURE);
+				
+			//print_r($n_starts);
+				
+			$root = new tn_object(true);
+			$numerator = new \hnumerator\HNnumerator();
+			$root->number = $numerator->getText();
+			$root->numerator_obj = $numerator;
+			
+			// экранированные регионы
+			$shilds = $this->get_shields_areas($params);
+		//	\the1utils\utils::mul_dbg($shilds);
+		
+			//$params['code']=$this->clear_comments($params['code'],$shilds);
+		
+			//print_r($n_ends[0]);
+			if(count($n_ends[0])>0)
 			{
-				echo " ".$p->position;
+					
+				if($n_ends[0][0][1]<$n_starts[0][0][1])
+				{
+					$this->ERROR_NO = 1;
+					return null;
+				}
+
+				$curr_node = $root;
+				$submap = [];
+				$idx_start = 0;
+				$idx_end =0;
+				$pos=0;
+
+				$pointbuf=[];
+				for($idx=0;$idx<count($n_starts[0]);$idx++)
+				{
+					$point=['buf'=>[],'type'=>'open'];
+					foreach ($n_starts as $nst)
+					{
+						$point['buf'][]=$nst[$idx][0];
+					}
+						
+					$pointbuf[$n_starts[0][$idx][1]]=$point;
+				}
+
+				for($idx=0;$idx<count($n_ends[0]);$idx++)
+				{
+					$point=['buf'=>[],'type'=>'closed'];
+					foreach ($n_ends as $nend)
+					{
+						$point['buf'][]=$nend[$idx][0];
+					}
+
+					$pointbuf[$n_ends[0][$idx][1]]=$point;
+				}
+
+				
+
+				ksort($pointbuf);
+				// убираем точки, оказавшиеся в экранированных регионах
+			//	\the1utils\utils::mul_dbg($pointbuf);
+			//	\the1utils\utils::mul_dbg($shilds);
+			//	\the1utils\utils::mul_dbg($comments_map);
+				
+				$this->filter_by_map($shilds,$pointbuf);
+				$this->filter_by_map($comments_map,$pointbuf);				
+					
+				if(isset($params['onmapready']))
+				{
+					$params['onmapready']($pointbuf);
+				}
+
+				$count_open = 0;
+				$count_closed = 0;
+				$this->calc_open_close($pointbuf,$count_open,$count_closed);
+				if($count_closed!=$count_open)
+				{
+					$this->ERROR_NO=1;
+					return null;
+				}
+
+				// основной цикл формирования дерева
+				$curr_node = $root;
+				$last_pos = 0;
+
+				foreach ($pointbuf as $pos => $point)
+				{
+					if($point['type']=='open')
+					{
+						$substr = substr($params['code'],$last_pos,$pos-$last_pos);
+						$this->delete_shilds($params,$substr);
+					//	$this->clear_comments($params,$substr);
+
+						$substr_node = new tn_text($substr);
+
+						$curr_node->add_item($substr_node);
+
+						$newtag = new tn_object();
+						$newtag->_POS_STRAT = $pos;
+						$newtag->_POS_START_END = $pos+strlen($point['buf'][0]);
+						$last_pos = $newtag->_POS_START_END;
+						$newtag->_START_TAG_REGEXP_RESULT = $point['buf'];
+						$newtag->_PARENT = $curr_node;
+
+						$curr_node->add_item($newtag);
+
+						$curr_node = $newtag;
+					}
+					elseif($point['type']=='closed')
+					{
+						$substr = substr($params['code'],$last_pos,$pos-$last_pos);
+						$this->delete_shilds($params,$substr);
+						//$this->clear_comments($params,$substr);
+				//		\the1utils\utils::mul_dbg($substr);
+
+						$substr_node = new tn_text($substr);
+
+
+						$curr_node->add_item($substr_node);
+
+						$curr_node->_POS_END = $pos;
+						$curr_node->_POS_END_END = $pos+strlen($point['buf'][0]);
+
+						$last_pos = $curr_node->_POS_END_END;
+
+						$curr_node->_END_TAG_REGEXP_RESULT = $point['buf'];
+
+						// запустить событие при окончании создания узла
+						if(isset($params['onnoderady']))
+						{
+							$params['onnoderady']($curr_node);
+						}
+
+						$curr_node = $curr_node->_PARENT;
+
+					}
+				}
+
+				$substr = substr($params['code'],$last_pos,strlen($params['code'])-$last_pos);
+				$this->delete_shilds($params,$substr);
+				// $this->clear_comments($params,$substr);
+				
+			//	\the1utils\utils::mul_dbg($substr);
+				$substr_node = new tn_text($substr);
+				
+				$this->detect_pieces_and_insert($substr,$params,$root);
+					
+				$pos = strlen($params['code']);
+				$root->add_item($substr_node); // добавить айтем
+
+				$root->_POS_END = strlen($params['code']);
+				$root->_POS_END_END = strlen($params['code']);
+					
+				return $root;
 			}
+			else
+			{
+				$root->add_item($params['code']);
+				return $root;
+			}
+
 		}
 		
 		private function detect_pieces_and_insert($_node_str,$params,$the_node)
