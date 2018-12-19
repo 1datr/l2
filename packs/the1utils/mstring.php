@@ -28,12 +28,7 @@ namespace the1utils
 					break;
 			}
 		}
-		
-		function detect_brother()
-		{
-			
-		}
-		
+				
 		function contains($_pos)
 		{
 			//if($this.position<=$pos)&&($this->M_END.position)
@@ -155,7 +150,14 @@ namespace the1utils
 			return $this->layers;
 		}
 		
-		
+		function split_by_layer($spl)
+		{
+			$first=0;
+			foreach($this->layers[$spl]->points() as $idx => $point)
+			{
+				
+			}
+		}
 		
 		function getPositionCoords($pos,$no_zero=true)
 		{

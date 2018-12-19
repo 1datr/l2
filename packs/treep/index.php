@@ -370,8 +370,8 @@ use the1utils\MString;
 				$next_on_end = $ms_code->find_closest_in_layer($binded[count($binded)-1]->position,'nend');
 				$binded[$pos_start]=['start'=>$curr_marker,'end'=>$next_on_end];
 				
-				$str1=$ms_code->substr($lastpoint,$curr_marker);
-				$meat_node = new tn_text($str1);
+				$meat_str=$ms_code->substr($lastpoint,$curr_marker);
+				$meat_node = new tn_text($meat_str);
 				$curr_node->add_item($meat_node);
 				// add node
 				$newnode = $this->add_obj_node($curr_marker,$next_on_end,$curr_node);
@@ -384,8 +384,9 @@ use the1utils\MString;
 				$binded[$pos_start]=['start'=>$curr_marker,'end'=>$next_on_end];
 				
 				
-				$str1=$ms_code->substr($lastpoint,$curr_marker);
-				$meat_node = new tn_text($str1);
+				$meat_str=$ms_code->substr($lastpoint,$curr_marker);
+				$this->add_meat($curr_node,$meat_str);
+				$meat_node = new tn_text($meat_str);
 				$curr_node->add_item($meat_node);
 				// add node
 				$newnode = $this->add_obj_node($curr_marker,$next_on_end,$curr_node);
