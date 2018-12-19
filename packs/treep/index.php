@@ -296,8 +296,10 @@ use the1utils\MString;
 			
 			$numerator = new \hnumerator\HNnumerator();
 			$node_root = new tn_object(true);
-			$root->number = $numerator->getText();
+			$node_root->number = $numerator->getText();
 			$node_root->numerator_obj = $numerator;
+			
+		//	print_r($node_root);
 			
 			$curr_node = $node_root;
 			$start_nodes = $ms_code->getLayer('nstart')->points();
@@ -312,32 +314,19 @@ use the1utils\MString;
 			$res = $this->get_brother_node($ms_code,$curr_node);
 		//	print_r($end_nodes);
 		
-		/*	foreach($start_nodes as $idx => $p)
-			{
-				$newnode = new tn_object();
-				$curr_node->add_item($newnode);
-				print_r($end_nodes[$idx]);
-				if(!isset($start_nodes[$idx+1]))
-				{
-					
-				}
-				elseif($end_nodes[$idx].position<$start_nodes[$idx+1].position)
-				{
-					
-				}
-				else 
-				{
-					
-				}
-			}*/
+		
+			//if(!$res)
+				return $curr_node;
+			/*else
+				return $res;*/
 		}
 		
-		private function get_brother_node($ms_code,$curr_node,$mpos=0)
+		private function get_brother_node($ms_code,&$curr_node,$mpos=0)
 		{
 			$less = 0;
-			echo "=$mpos=";
+		//	echo "=$mpos=";
 			$p_end = $ms_code->getLayer('nend')->points()[$mpos];
-		//	print_r($p_end);
+
 			if($mpos+1<count($ms_code->getLayer('nstart')->points())-1)
 			{	
 				//echo ";;;";
@@ -347,22 +336,30 @@ use the1utils\MString;
 				$less=($p_end->position<$start_next->position);
 				
 			}
-			else 
-				$less=1;
+			else $less=1;
 			//print_r($start_next);
 			
 			if($less)
 			{
 				$newnode = new tn_object();
+				$newnode->_START_TAG_REGEXP_RESULT = $start_next->regexp_data;
+				$newnode->_END_TAG_REGEXP_RESULT = $p_end->regexp_data;
+				//print_r($newnode);
 				$curr_node->add_item($newnode);
+				//echo ":added:";
 			}
 			else 
 			{
 				$node2 = new tn_object();
+				$node2->_START_TAG_REGEXP_RESULT = $start_next->regexp_data;
+				//$node2->_END_TAG_REGEXP_RESULT = $p_end->regexp_data;
+				//print_r($node2);
+				
 				$res = $this->get_brother_node($ms_code,$node2,$mpos+1);
 				if(!$res) return false;					
 				$curr_node->add_item($node2);
 				
+				//print_r($curr_node);
 			}
 			return true;
 		}

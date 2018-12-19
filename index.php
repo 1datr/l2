@@ -20,9 +20,13 @@ $compiled = $_treep->compile([
 	'shields'=>['#\\".*\\"#Uis',"#'.*'#Uis",],
 	/*'shields'=>['"','"','clear'=>false],*/
 ]);
-if(!empty($compiled['error']))
+if(is_array($compiled))
 {
 	echo "<h4>".$compiled['error']."</h4>";
+}
+else 
+{
+	//print_r($compiled);
 }
 /*
 $ms = new MString("uurrr{if(88) 87878 
