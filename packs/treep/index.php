@@ -332,7 +332,7 @@ use the1utils\MString;
 			
 		}
 		
-		private function bind_pairs($ms_code,&$curr_node,$pos_start,&$binded)
+		private function bind_pairs($ms_code,&$curr_node,$pos_start,&$binded,$lastpoint=0)
 		{					
 			$go_recursive = 0;
 			$next_start=true;
@@ -363,11 +363,16 @@ use the1utils\MString;
 			
 			if($go_recursive)
 			{
-				$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded);
+				$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded,$curr_node);
+				
+				$lastpoint = $binded[count($binded)-1]['nend'];
 				
 				$next_on_end = $ms_code->find_closest_in_layer($binded[count($binded)-1]->position,'nend');
 				$binded[$pos_start]=['start'=>$curr_marker,'end'=>$next_on_end];
 				
+				$str1=$ms_code->substr($lastpoint,$curr_marker);
+				$meat_node = new tn_text($str1);
+				$curr_node->add_item($meat_node);
 				// add node
 				$newnode = $this->add_obj_node($curr_marker,$next_on_end,$curr_node);
 								
@@ -378,6 +383,10 @@ use the1utils\MString;
 			{
 				$binded[$pos_start]=['start'=>$curr_marker,'end'=>$next_on_end];
 				
+				
+				$str1=$ms_code->substr($lastpoint,$curr_marker);
+				$meat_node = new tn_text($str1);
+				$curr_node->add_item($meat_node);
 				// add node
 				$newnode = $this->add_obj_node($curr_marker,$next_on_end,$curr_node);
 				
@@ -385,9 +394,14 @@ use the1utils\MString;
 				
 				if($next_start)
 				{
-					$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded);
+					$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded,$curr_node);
 				}
 			}
+		}
+		
+		private function add_meat($curr_node,$m_str_code)
+		{
+			
 		}
 		
 		private function add_obj_node($start_marker,$end_marker,$curr_node)
