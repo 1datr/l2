@@ -311,59 +311,74 @@ use the1utils\MString;
 				return ['error'=>'Parse error '];
 			}
 			
-			$res = $this->get_brother_node($ms_code,$curr_node);
-		//	print_r($end_nodes);
+			//$res = $this->get_brother_node($ms_code,$curr_node);
+			$pos_start = 0;
+			$pos_end = 0;
+			$binded=[];
+			$this->bind_pairs($ms_code,$curr_node,0,$binded);
+			/*
+			foreach($binded as $idx => $bnd)
+			{
+				echo "\n $idx : ";
+				//echo $bnd['start']->regexp_data[0][1];
+				echo "\n start : ".$bnd['start']->_LAYER->parent_mstr->getPositionCoords($bnd['start']->regexp_data[0][1])."\n";
+				print_r($bnd['start']->regexp_data[0][0]);
+				echo "\n end : ".$bnd['end']->_LAYER->parent_mstr->getPositionCoords($bnd['end']->regexp_data[0][1])."\n";
+				print_r($bnd['end']->regexp_data[0][0]);
+			}
+			*/
 		
-		
-			//if(!$res)
-				return $curr_node;
-			/*else
-				return $res;*/
+			return $curr_node;
+			
 		}
 		
-		private function get_brother_node($ms_code,&$curr_node,$mpos=0)
-		{
-			$less = 0;
-		//	echo "=$mpos=";
-			$p_end = $ms_code->getLayer('nend')->points()[$mpos];
-
-			if($mpos+1<count($ms_code->getLayer('nstart')->points())-1)
-			{	
-				//echo ";;;";
-				$start_next = $ms_code->getLayer('nstart')->points()[$mpos+1];
-			//	print_r($start_next);
-				//echo "++".$p_end->position."++";
-				$less=($p_end->position<$start_next->position);
-				
-			}
-			else $less=1;
-			//print_r($start_next);
+		private function bind_pairs($ms_code,&$curr_node,$pos_start,&$binded)
+		{					
+			$go_recursive = 0;
+			$next_start=true;
+			//	echo "=$mpos=";
+			$curr_marker = $ms_code->getLayer('nstart')->points()[$pos_start];
 			
-			if($less)
+		//	the1utils\utils::mul_dbg($pos_start." >> ".$curr_marker->regexp_data[0][0]);
+			
+			$next_on_end = $ms_code->find_closest_in_layer($ms_code->getLayer('nstart')->points()[$pos_start]->pos_end ,'nend');
+			$next_on_start = $ms_code->find_closest_in_layer($ms_code->getLayer('nstart')->points()[$pos_start]->pos_end ,'nstart');
+			
+			if($next_on_start==null) 
 			{
-				$newnode = new tn_object();
-				$newnode->_START_TAG_REGEXP_RESULT = $start_next->regexp_data;
-				$newnode->_END_TAG_REGEXP_RESULT = $p_end->regexp_data;
-				//print_r($newnode);
-				$curr_node->add_item($newnode);
-				//echo ":added:";
+				$go_recursive = 0;	
+				$next_start=false;
 			}
 			else 
 			{
-				$node2 = new tn_object();
-				$node2->_START_TAG_REGEXP_RESULT = $start_next->regexp_data;
-				//$node2->_END_TAG_REGEXP_RESULT = $p_end->regexp_data;
-				//print_r($node2);
-				
-				$res = $this->get_brother_node($ms_code,$node2,$mpos+1);
-				if(!$res) return false;					
-				$curr_node->add_item($node2);
-				
-				//print_r($curr_node);
+				if($next_on_start->position<$next_on_end->position)
+				{
+					$go_recursive = 1;
+				}
+				else 
+				{
+					$go_recursive = 0;
+				}
 			}
-			return true;
+			
+			if($go_recursive)
+			{
+				$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded);
+				
+				$next_on_end = $ms_code->find_closest_in_layer($binded[count($binded)-1]->position,'nend');
+				$binded[$pos_start]=['start'=>$curr_marker,'end'=>$next_on_end];
+			}
+			else 
+			{
+				$binded[$pos_start]=['start'=>$curr_marker,'end'=>$next_on_end];
+				
+				if($next_start)
+				{
+					$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded);
+				}
+			}
 		}
-		
+				
 		private function detect_pieces_and_insert($_node_str,$params,$the_node)
 		{
 			$params2=$params;

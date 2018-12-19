@@ -130,6 +130,17 @@ namespace the1utils
 		}
 	}
 	
+	class StrPosXY
+	{
+		VAR $x;
+		VAR $y;
+		
+		function __toString()
+		{
+			return $this->y." : ".$this->x;
+		}
+	}
+	
 	class MString
 	{
 		VAR $content;
@@ -142,6 +153,38 @@ namespace the1utils
 		function Layers()
 		{
 			return $this->layers;
+		}
+		
+		
+		
+		function getPositionCoords($pos,$no_zero=true)
+		{
+			$res = new StrPosXY();
+			$res->y=0;
+			for($i=0;$i<$pos;$i++)
+			{
+				if($i>=strlen($this->content)) return null;
+			//	echo substr($this->content,$i,1);
+				if(substr($this->content,$i,1)=="\n")
+				{
+					$res->y++;
+					$res->x=0;
+				}
+				elseif(substr($this->content,$i,1)=="\t")
+				{
+					$res->x++;
+				}
+				else 
+				{
+					$res->x++;
+				}
+			}
+			if($no_zero)
+			{
+				$res->x++;
+				$res->y++;
+			}
+			return $res;
 		}
 		
 		function getLayer($lname)
@@ -168,12 +211,14 @@ namespace the1utils
 			{
 				$regexp_res = [];
 				preg_match_all($_regexp,$this->content,$regexp_res,PREG_OFFSET_CAPTURE|PREG_SET_ORDER);
+				//\the1utils\utils::mul_dbg($regexp_res);
 				$this->layers[$lname]=new MSLayer($this,$regexp_res);
 			}
 			else 
 			{
 				$regexp_res = [];
 				preg_match_all($_regexp,$this->content,$regexp_res,PREG_OFFSET_CAPTURE|PREG_SET_ORDER);
+			//	\the1utils\utils::mul_dbg($regexp_res);
 				$this->layers[$lname]->add_points($regexp_res);
 			}
 		}
@@ -197,40 +242,16 @@ namespace the1utils
 				}
 			}
 		}
-		// сопоставить маркеры из одного леера с маркерами из другого леера
-	/*	function juxtapose($layer_start,$layer_end,$pos=0)
-		{
-			$res_arr=[];
-			foreach($this->layers[$layer_start]->points() as $idx => $p_curr)
-			{
-				$cl_start = $this->find_closest_in_layer($p_curr,$layer_start);
-				$cl_end = $this->find_closest_in_layer($p_curr,$layer_end);
-				if($cl_end.position<$cl_start.position)
-				{
-					$res_arr[]=['start'=>$p_curr,'end'=>$cl_end];
-				}
-				else 
-				{
-					$ctr=1;
-					$go=1;
-					while($go)
-					{
-						$cl_start = $this->find_closest_in_layer($p_curr,$layer_start);
-						$cl_end = $this->find_closest_in_layer($p_curr,$layer_end);
-						
-					}
-				}
-			}
-			return $res_arr;
-		}*/
+	
 		
-		public function find_closest_in_layer($pos,$_layer)
+		public function find_closest_in_layer($pos,$_layer,$_type='start')
 		{
 			foreach($this->layers[$_layer]->points() as $idx => $p)
 			{
-				if($p.position>$pos)
+				if(($p->position>$pos)&&($p->type==$_type))
 					return $p;
 			}
+			return null;
 		}
 		
 		function substr($pos,$length)

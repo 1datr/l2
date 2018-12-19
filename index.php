@@ -26,7 +26,7 @@ if(is_array($compiled))
 }
 else 
 {
-	//print_r($compiled);
+	print_r($compiled);
 }
 /*
 $ms = new MString("uurrr{if(88) 87878 
