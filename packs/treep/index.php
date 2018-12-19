@@ -367,16 +367,37 @@ use the1utils\MString;
 				
 				$next_on_end = $ms_code->find_closest_in_layer($binded[count($binded)-1]->position,'nend');
 				$binded[$pos_start]=['start'=>$curr_marker,'end'=>$next_on_end];
+				
+				// add node
+				$newnode = $this->add_obj_node($curr_marker,$next_on_end,$curr_node);
+								
+				
+				//$curr_node->add_item($newnode);
 			}
 			else 
 			{
 				$binded[$pos_start]=['start'=>$curr_marker,'end'=>$next_on_end];
+				
+				// add node
+				$newnode = $this->add_obj_node($curr_marker,$next_on_end,$curr_node);
+				
+				//$curr_node->add_item($newnode);
 				
 				if($next_start)
 				{
 					$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded);
 				}
 			}
+		}
+		
+		private function add_obj_node($start_marker,$end_marker,$curr_node)
+		{
+			$newnode = new tn_object();
+			$newnode->_START_TAG_REGEXP_RESULT = $start_marker->regexp_data;
+			$newnode->_END_TAG_REGEXP_RESULT = $end_marker->regexp_data;
+			$newnode->_PARENT = $curr_node;
+			$curr_node->add_item($newnode);
+			return $newnode;
 		}
 				
 		private function detect_pieces_and_insert($_node_str,$params,$the_node)
