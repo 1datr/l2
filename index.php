@@ -26,7 +26,8 @@ if(is_array($compiled))
 }
 else 
 {
-	the1utils\utils::mul_dbg($compiled);
+	//print_r($compiled);
+//	the1utils\utils::mul_dbg($compiled);
 }
 /*
 $ms = new MString("uurrr{if(88) 87878 

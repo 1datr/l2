@@ -373,7 +373,9 @@ use the1utils\MString;
 				$str_to_eval = $str_to_eval.'$ms_code->strbetween('.$last_p_pos.','.(strlen($ms_code->content)-1).'),';
 			}
 			$str_to_eval=$str_to_eval.']);'."\n\r";
-		//	echo $str_to_eval;
+			
+			//echo $str_to_eval;
+			
 			 eval($str_to_eval);
 			return $root;
 		}
@@ -397,11 +399,15 @@ use the1utils\MString;
 				}
 				elseif(\the1utils\utils::is_object_of($item,"the1utils\MString")) 
 				{
+				//	print_r($item->getLayer('comments')->points());
+					
 					$splitted = $item->split_by_layer('comments');
-					//print_r($item->layers['comments']->points());
+					
 					
 					foreach($splitted as $j => $spl_item)
 					{
+					//	echo "<<".$spl_item['str'];
+						
 						if($spl_item['in_layer'])
 						{
 							$comment_node = new tn_comment($spl_item['str']);

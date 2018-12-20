@@ -50,12 +50,15 @@ namespace the1utils
 		VAR $points=[];
 		VAR $parent_mstr=NULL;
 		
-		function __construct($parent,$regexp_res)
+		
+		
+		function __construct($parent,$regexp_res=null)
 		{
 			$this->parent_mstr = $parent;
 			$this->regexp_data = $r_e_data;
 			$this->points = [];
-			$this->add_points($regexp_res);			
+			if($regexp_res!=null)
+				$this->add_points($regexp_res);			
 		}	
 				
 		function add_points($_points)
@@ -132,8 +135,10 @@ namespace the1utils
 				{
 					
 					$p->position-=$pos1;
+					$p->pos_end-=$pos1;
 				}
 			}
+			$this->points = utils::rebuild_array($this->points);
 		}
 	}
 	
@@ -171,6 +176,7 @@ namespace the1utils
 		{
 			$last_point=0;
 			$res=[];
+			if(empty($this->layers[$spl])) return [];
 			foreach($this->layers[$spl]->points() as $idx => $point)
 			{
 				$inlayer=false;
@@ -304,7 +310,10 @@ namespace the1utils
 		
 		function strbetween($pos1,$pos2)
 		{
-			return $this->substr($pos1,$pos2-$pos1+1);
+			$newstr = $this->substr($pos1,$pos2-$pos1+1);
+			
+		//	echo "[".$newstr->content."]=".count($newstr->getLayer('comments')->points())."=";
+			return $newstr;
 		}
 		function substr($pos,$length='end')
 		{			
@@ -340,12 +349,47 @@ namespace the1utils
 			}
 		
 			$newstr = new MString($the_str);
-			$newstr->layers = $this->layers;
-			foreach($newstr->Layers() as $lname => $layer)
+			
+		//	$newstr->layers = [];// $this->layers;
+					
+			
+			foreach($this->Layers() as $lname => $layer)
 			{
-				//print_r($layer);
-				$newstr->getLayer($lname)->cut_n_move($pos1,$pos2);
+				//echo $lname;
+				$points = $layer->get_markers($pos1,$pos2);
+				$newstr->layers[$lname]=new MSLayer($newstr);
+			//	print_r($points);
+				foreach($points as $idx => $p)
+				{
+					$currp = $layer->points()[$p];
+					//print_r($currp);
+					if(($currp->position<$pos1)||($currp->position>$pos2))
+					{
+						//unset($this->points[$idx]);
+					}
+					else
+					{
+						$pnew =  $currp;
+					//	print_r($newstr->layers[$lname]->points);
+					//	\the1utils\utils::mul_dbg($newstr->layers);
+						$pnew-=$pos1;
+						$pnew-=$pos1;
+						$newstr->layers[$lname]->points[]=$pnew;
+					}
+				}
+				
+				
+			//	$clone =clone $layer;
+			//	the1utils\utils::mul_dbg($clone);
+				
+				//print_r($newstr->layers);
+				
+				//$clone->parent_mstr = $newstr;
+			//	$newstr->getLayer($lname)->cut_n_move($pos1,$pos2);
 			}
+			
+			
+			//utils::mul_dbg(	$newstr->layers['comments']->points());
 			
 			return $newstr;
 		}
