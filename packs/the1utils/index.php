@@ -8,8 +8,11 @@ class utils
 
 	static function is_object_of($obj,$_class)
 	{
+		
 		if(!is_object($obj))
 			return false;
+		
+		//self::mul_dbg(get_class($obj));
 		return (get_class($obj)==$_class);
 	}
 	 

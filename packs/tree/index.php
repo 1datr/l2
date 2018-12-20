@@ -11,11 +11,11 @@ namespace tree{
 		VAR $numerator_obj;
 		
 	
-		function add_item($item)
+		function add_item(&$item)
 		{
 		//	print_r($this->numerator_obj);
 			
-			if(count($this->_ITEMS)>0)
+		/*	if(count($this->_ITEMS)>0)
 			{
 				$obj_num = clone $this->_ITEMS[count($this->_ITEMS)-1]->numerator_obj;
 				$obj_num->inc();
@@ -33,8 +33,9 @@ namespace tree{
 			{
 				$item->numerator_obj = $obj_num;
 				$item->number = $obj_num->getText();
-			}
+			}*/
 			$this->_ITEMS[]=$item;
+			$item->_PARENT=$this;
 		}
 	
 	

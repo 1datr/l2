@@ -81,9 +81,21 @@ namespace the1utils
 			return null;
 		}
 		
-		function points()
+		function points($type=NULL)
 		{
-			return $this->points;
+			if($type==NULL)
+				return $this->points;
+			else 
+			{
+				$plist=[];
+				foreach($this->points as $idx => $p)
+				{
+					if($p->type==$type)
+						$plist[]=$p;
+				}
+				return $plist;
+			}
+			return null;
 		}	
 		// get markers between pos1 and pos2
 		public function get_markers($pos1=-1,$pos2=-1)
@@ -150,13 +162,47 @@ namespace the1utils
 			return $this->layers;
 		}
 		
+		function __toString()
+		{
+			return $this->content;
+		}
+		
 		function split_by_layer($spl)
 		{
-			$first=0;
+			$last_point=0;
+			$res=[];
 			foreach($this->layers[$spl]->points() as $idx => $point)
 			{
-				
+				$inlayer=false;
+				if(is_numeric($last_point))
+				{
+					$inlayer=false;
+					$ss = $this->substr($last_point, $point->position)->content;
+				}
+				else 
+				{
+					if(($last_point->type=='start')&&($point->type=='end'))
+					{
+						$inlayer=true;	
+						$ss = $this->substr($last_point, $point)->content;
+					}
+					else 
+						$ss = $this->substr($last_point->pos_end, $point->position)->content;
+				}
+				if(!empty($ss))
+				{
+					$res[]=['str'=>$ss,'in_layer'=>$inlayer];					
+				}
+				$last_point = $point;
 			}
+			
+			if($point->pos_end<strlen($this->content)-1)
+			{
+				$ss = $this->substr($point)->content;
+				if(!empty($ss))
+					$res[]=['str'=>$ss,'in_layer'=>false];
+			}
+			return $res;
 		}
 		
 		function getPositionCoords($pos,$no_zero=true)
@@ -256,10 +302,12 @@ namespace the1utils
 			return null;
 		}
 		
-		function substr($pos,$length)
+		function strbetween($pos1,$pos2)
 		{
-			//print_r($pos);
-			//print_r($length);
+			return $this->substr($pos1,$pos2-$pos1+1);
+		}
+		function substr($pos,$length='end')
+		{			
 			if(\the1utils\utils::is_object_of($pos,"the1utils\MSLMarker"))
 			{
 				$pos = $pos->position;
@@ -267,8 +315,13 @@ namespace the1utils
 			
 			if(\the1utils\utils::is_object_of($length,"the1utils\MSLMarker"))
 			{
-				$pos2 = $length->position;				
+				$pos2 = $length->pos_end;				
 				$length = $pos2-$pos;
+			}
+			
+			if($length=='end')
+			{
+				$length=strlen($this->content)-$pos-1;				
 			}
 			
 			$the_str = mb_substr($this->content,$pos,$length);
@@ -280,6 +333,11 @@ namespace the1utils
 				$pos2 = strlen($this->content)+$length;
 			else 
 				$pos2 = $pos1+$length;
+			
+			if($length=='end')
+			{
+				$pos2 = strlen($this->content)-1;
+			}
 		
 			$newstr = new MString($the_str);
 			$newstr->layers = $this->layers;
