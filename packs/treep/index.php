@@ -315,7 +315,7 @@ use the1utils\MString;
 			$pos_start = 0;
 			$pos_end = 0;
 			$binded=[];
-			return $this->build_tree_exec($ms_code);
+			return $this->_build_tree($ms_code);
 			
 			//$this->bind_pairs($ms_code,$curr_node,0,$binded);
 			/*
@@ -334,7 +334,7 @@ use the1utils\MString;
 			
 		}
 		
-		private function build_tree_exec($ms_code)
+		private function _build_tree($ms_code)
 		{
 			$str_to_eval='$root = $this->build_node($ms_code,['."\n\r";
 			$last_p=0;
@@ -349,195 +349,132 @@ use the1utils\MString;
 			{
 				$_points[$p->position]=['point'=>$p,'layer'=>'end','idx'=>$idx,];
 			}
+			foreach($ms_code->getLayer('comments')->points('start') as $idx => $p)
+			{
+				$_points[$p->position]=['point'=>$p,'layer'=>'comm_start','idx'=>$idx,];
+			}
+			foreach($ms_code->getLayer('comments')->points('end') as $idx => $p)
+			{
+				$_points[$p->position]=['point'=>$p,'layer'=>'comm_end','idx'=>$idx,];
+			}
 			
 			ksort($_points);
-						
-			foreach($_points as $idx => $pt)
+			
+			$_root = new tn_object();
+			$_curr_node = $_root;
+			$pos_last=0;
+			$p_last=null;
+			
+			$points_and_strings=[];
+			$pos_end=0;
+			foreach ($_points as $_pos => $p)
 			{
-				$p=$pt['point'];
-				$pidx=$pt['idx'];
-				if(!is_numeric($last_p))
+				//if(!is_numeric($pos_last))
+				if($p_last!=null)
 				{
-					$last_p_pos = $last_p->pos_end;
-				}//"\n\r\t"
-				$str_to_eval = $str_to_eval.'$ms_code->strbetween('.$last_p_pos.','.($p->position-1).'),';
-				if($pt['layer']=='start')
-					$str_to_eval = $str_to_eval.'$this->build_node($ms_code,[$ms_code->getLayer("nstart")->points("start")['.$pidx.'],';
+					$pos_last=$p_last['point']->position;
+					//echo "=$pos_last=";
+				}
+				
+				//echo "[".$ms_code->getPositionCoords($pos_last)."]";
+				
+				if($p['point']->position==0)
+				{
+					$_substr = new MString('');
+					//continue;
+				}
 				else
-					$str_to_eval = $str_to_eval.']),';
-				$last_p=$p;
-			}
-			if($pt['point']->position<strlen($ms_code->content)-1)
-			{
-				$last_p_pos = $pt['point']->pos_end;
-				$str_to_eval = $str_to_eval.'$ms_code->strbetween('.$last_p_pos.','.(strlen($ms_code->content)-1).'),';
-			}
-			$str_to_eval=$str_to_eval.']);'."\n\r";
-			
-			//echo $str_to_eval;
-			
-			 eval($str_to_eval);
-			return $root;
-		}
-		
-		private function build_node($mstr,$items)
-		{
-			$_node = new tn_object();
-			if(the1utils\utils::is_object_of($items[0],"the1utils\MSLMarker"))
-			{
-				$node_item = $items[0];
-				unset($items[0]);
-				$_node->_START_TAG_REGEXP_RESULT=$node_item->regexp_data;
-				$_node->_END_TAG_REGEXP_RESULT=$node_item->M_END->regexp_data;
-			}
-			foreach($items as $idx => $item)
-			{
-				//the1utils\utils::mul_dbg(get_class($item));
-				if(the1utils\utils::is_object_of($item, 'treep\tn_object'))
+					//$_substr = $ms_code->strbetween($pos_end,$p['point']->position-1);
+					$_substr = $ms_code->strbetween($pos_last,$p['point']->position-1);
+				
+				switch($p['layer'])
 				{
-					$_node->add_item($item);									
-				}
-				elseif(\the1utils\utils::is_object_of($item,"the1utils\MString")) 
-				{
-				//	print_r($item->getLayer('comments')->points());
-					
-					$splitted = $item->split_by_layer('comments');
-					
-					
-					foreach($splitted as $j => $spl_item)
-					{
-					//	echo "<<".$spl_item['str'];
+					case 'start': {
+						if($_substr->length()>0)
+						{
+							$points_and_strings[]=['layer'=>'code','str'=>$_substr];
+							
+						}
+						$points_and_strings[]=$p;
+						$pos_end = $p['point']->pos_end+1;
 						
-						if($spl_item['in_layer'])
+						echo "[".$ms_code->getPositionCoords($pos_end)."]";
+						
+						
+						$p_last=$p;
+					};break;
+					case 'end': {
+						
+						if($_substr->length()>0)
 						{
-							$comment_node = new tn_comment($spl_item['str']);
-							//the1utils\utils::mul_dbg($txt_node);
-							$_node->add_item($comment_node);
+							$points_and_strings[]=['layer'=>'code','str'=>$_substr];
 						}
-						else 
+						$points_and_strings[]=$p;
+						
+						$pos_end = $p['point']->pos_end+1;						
+						echo "[".$ms_code->getPositionCoords($pos_end)."]";
+						
+						$p_last=$p;
+					};break;
+					case 'comm_start': {						
+						if($_substr->length()>0)
 						{
-							$txt_node = new tn_text($spl_item['str']);
-							//the1utils\utils::mul_dbg($txt_node);
-							$_node->add_item($txt_node);
+							$points_and_strings[]=['layer'=>'code','str'=>$_substr];
+							$p_last=$p;
 						}
-					}
+						$pos_end = $p['point']->pos_end+1;
+						
+						echo "[".$ms_code->getPositionCoords($pos_end)."]";
+					};break;
+					case 'comm_end': {					
+						if($_substr->length()>0)
+						{
+							
+							$points_and_strings[]=['layer'=>'comment','str'=>$_substr];
+							$p_last=$p;
+						}
+						$pos_end = $p['point']->pos_end+1;						
+						echo "[".$ms_code->getPositionCoords($pos_end)."]";
+					};break;
+				}
+				
+				
+			}
+			
+			
+			foreach($points_and_strings as $_pos => $p)
+			{
 					
-					//the1utils\utils::mul_dbg($item->content);
-					//echo "\n>> ".$item->content;
-				}
-			}
-			return $_node;
-		}
-		
-		private function bind_pairs($ms_code,&$curr_node,$pos_start,&$binded,$lastpoint=0)
-		{					
-			$go_recursive = 0;
-			$next_start=true;
-			//	echo "=$mpos=";
-			$curr_marker = $ms_code->getLayer('nstart')->points()[$pos_start];
-			
-		//	the1utils\utils::mul_dbg($pos_start." >> ".$curr_marker->regexp_data[0][0]);
-			
-			$next_on_end = $ms_code->find_closest_in_layer($ms_code->getLayer('nstart')->points()[$pos_start]->pos_end ,'nend');
-			$next_on_start = $ms_code->find_closest_in_layer($ms_code->getLayer('nstart')->points()[$pos_start]->pos_end ,'nstart');
-			
-			if($next_on_start==null) 
-			{
-				$go_recursive = 0;	
-				$next_start=false;
-			}
-			else 
-			{
-				if($next_on_start->position<$next_on_end->position)
+				switch($p['layer'])
 				{
-					$go_recursive = 1;
+					case 'start': {									
+						$new_node = new  tn_object();
+						//the1utils\utils::mul_dbg($p['point']->regexp_data);
+						$new_node->_START_TAG_REGEXP_RESULT = $p['point']->regexp_data;
+						$new_node->_END_TAG_REGEXP_RESULT = $p['point']->M_END->regexp_data;
+						$_curr_node->add_item($new_node);
+						$_curr_node = $new_node;
+					};break;
+					case 'end': {						
+						$_curr_node->add_item($text_node);						
+						$_curr_node = $_curr_node->_PARENT;
+					};break;
+					case 'code': {
+						$text_node = new tn_text($p['str']->content);
+						$_curr_node->add_item($text_node);
+						
+					};break;
+					case 'comment': {
+						$comm_node = new tn_comment($p['str']->content);
+						$_curr_node->add_item($comm_node);						
+					};break;
 				}
-				else 
-				{
-					$go_recursive = 0;
-				}
+				
 			}
 			
-			if($go_recursive)
-			{		 
-				$meat_str1 = $ms_code->strbetween($curr_marker->pos_end+1,$next_on_start->position-1);
+			return $_root;
 			
-				$this->add_meat($curr_node,$meat_str1);
-				// движемся к следующей
-				$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded,$curr_marker);
-				
-				\the1utils\utils::mul_dbg( \the1utils\utils::grub_code(function() use ($binded,$ms_code)
-				{
-					foreach ($binded as $b)
-					{
-						echo "\nstart=".$ms_code->getPositionCoords($b['start']->position)." ";
-						echo "end=".$ms_code->getPositionCoords($b['end']->position);
-						echo "";
-					}	
-				}) );
-				
-				$lastpoint = $binded[count($binded)-1]['nend'];
-				
-				$next_on_end = $ms_code->find_closest_in_layer($binded[count($binded)-1]->position,'nend');
-				$binded[]=['start'=>$curr_marker,'end'=>$next_on_end];
-				
-			//	echo "==".$ms_code->getPositionCoords($lastpoint->pos_end);
-				
-				$meat_str2=$ms_code->strbetween($lastpoint->pos_end+1,$next_on_end->position-1);
-			//	echo "\n>>".$meat_str2;
-				
-		//		$this->add_meat($curr_node,$meat_str);
-			
-				// add node
-				$newnode = $this->add_obj_node($curr_marker,$next_on_end,$curr_node);
-				
-				//$this->add_meat($newnode,$meat_str2);
-								
-				
-				//$curr_node->add_item($newnode);
-			}
-			else 
-			{
-				$binded[]=['start'=>$curr_marker,'end'=>$next_on_end];
-				
-				
-			//	$meat_str=$ms_code->substr($lastpoint,$curr_marker);
-				
-			//	echo ">>".$meat_str;
-				
-		//		$this->add_meat($curr_node,$meat_str);
-			
-				// add node
-				$newnode = $this->add_obj_node($curr_marker,$next_on_end,$curr_node);
-				
-				//$curr_node->add_item($newnode);
-				
-				if($next_start)
-				{
-					$this->bind_pairs($ms_code,$curr_node,$pos_start+2,$binded,$next_on_end);
-				}
-			}
-		}
-		
-		private function add_meat($curr_node,$m_str_code)
-		{
-			$splitted = $m_str_code->split_by_layer('comments');
-			//echo "\n>> ".$m_str_code;
-			//print_r($splitted);
-			foreach($splitted as $item)
-			{
-				if($item['in_layer'])
-				{
-					$meat_node = new tn_comment($item['str']);
-					$curr_node->add_item($meat_node);
-				}
-				else 
-				{
-					$meat_node = new tn_text($item['str']);
-					$curr_node->add_item($meat_node);
-				}
-			}
-		}
+		}			
 		
 		private function add_obj_node($start_marker,$end_marker,$curr_node)
 		{

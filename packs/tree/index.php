@@ -9,6 +9,7 @@ namespace tree{
 		VAR $_STANDSTILL=FALSE; // тупиковая ветвь
 		VAR $number=NULL;
 		VAR $numerator_obj;
+		VAR $_PARENT=NULL;
 		
 	
 		function add_item(&$item)

@@ -26,47 +26,16 @@ if(is_array($compiled))
 }
 else 
 {
+	$compiled->walk(function($item)
+	{
+		if(!empty($item->_START_TAG_REGEXP_RESULT))
+		{
+			echo "<+".$item->_START_TAG_REGEXP_RESULT[0][0]."+>";
+		}
+		else
+			echo "\n\r[".$item->_TEXT."
+]";
+	});
 	//print_r($compiled);
 //	the1utils\utils::mul_dbg($compiled);
 }
-/*
-$ms = new MString("uurrr{if(88) 87878 
-if(88==88){
-====
-// 99990
-++++
-}
-/*
-* {
-* 		
-*/
-/*
-}");
-$ms->addLayer('brackets', '#\{if\((.*)\)#Uis');
-$ms->addLayer('comments', ['#\/\*.*\*\/#Uis','#\/\/.*$#m']);
-$ms->addLayer('shields', "#\'(.*)\'/#Uis");
-
-?>
-<table border="1">
-<tr>
-<?php 
-for($i=0;$i<strlen($ms->content);$i++)
-{
-	?><td><?=$i?></td><?php 
-}
-?>
-</tr>
-<tr>
-<?php 
-for($i=0;$i<strlen($ms->content);$i++)
-{
-	?><td><?=$ms->content[$i]?></td><?php 
-}
-?>
-</tr>
-</table>
-<?php 
-foreach($ms->getLayer('comments')->points() as $pt)
-{
-	echo " ".$pt->position;
-}*/

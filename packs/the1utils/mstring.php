@@ -172,6 +172,11 @@ namespace the1utils
 			return $this->content;
 		}
 		
+		function length()
+		{
+			return strlen($this->content);
+		}
+		
 		function split_by_layer($spl)
 		{
 			$last_point=0;
