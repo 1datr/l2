@@ -33,6 +33,7 @@ namespace treep{
 	
 	use the1utils;
 use the1utils\MString;
+use the1utils\utils as utils;
 		
 	require_once __DIR__.'/lib/nodes.php';
 
@@ -384,8 +385,11 @@ use the1utils\MString;
 					//continue;
 				}
 				else
-					//$_substr = $ms_code->strbetween($pos_end,$p['point']->position-1);
-					$_substr = $ms_code->strbetween($pos_last,$p['point']->position-1);
+				{	
+					$_substr = $ms_code->strbetween($pos_end,$p['point']->position-1);
+					//$_substr = $ms_code->strbetween($pos_last,$p['point']->position-1);
+				}
+			//	utils::mul_dbg($_substr->content);
 				
 				switch($p['layer'])
 				{
@@ -398,7 +402,7 @@ use the1utils\MString;
 						$points_and_strings[]=$p;
 						$pos_end = $p['point']->pos_end+1;
 						
-						echo "[".$ms_code->getPositionCoords($pos_end)."]";
+					//	echo "[".$ms_code->getPositionCoords($pos_end)."]";
 						
 						
 						$p_last=$p;
@@ -411,9 +415,10 @@ use the1utils\MString;
 						}
 						$points_and_strings[]=$p;
 						
-						$pos_end = $p['point']->pos_end+1;						
-						echo "[".$ms_code->getPositionCoords($pos_end)."]";
-						
+						$pos_end = $p['point']->position;						
+					/*	echo "[".$ms_code->getPositionCoords($pos_end)."]";
+						echo $_substr->content;
+						exit();*/
 						$p_last=$p;
 					};break;
 					case 'comm_start': {						
@@ -422,9 +427,9 @@ use the1utils\MString;
 							$points_and_strings[]=['layer'=>'code','str'=>$_substr];
 							$p_last=$p;
 						}
-						$pos_end = $p['point']->pos_end+1;
+						$pos_end = $p['point']->position;
 						
-						echo "[".$ms_code->getPositionCoords($pos_end)."]";
+					//	echo "[".$ms_code->getPositionCoords($pos_end)."]";
 					};break;
 					case 'comm_end': {					
 						if($_substr->length()>0)
@@ -433,8 +438,8 @@ use the1utils\MString;
 							$points_and_strings[]=['layer'=>'comment','str'=>$_substr];
 							$p_last=$p;
 						}
-						$pos_end = $p['point']->pos_end+1;						
-						echo "[".$ms_code->getPositionCoords($pos_end)."]";
+						$pos_end = $p['point']->position;						
+					//	echo "[".$ms_code->getPositionCoords($pos_end)."]";
 					};break;
 				}
 				
@@ -456,7 +461,7 @@ use the1utils\MString;
 						$_curr_node = $new_node;
 					};break;
 					case 'end': {						
-						$_curr_node->add_item($text_node);						
+					//	$_curr_node->add_item($text_node);						
 						$_curr_node = $_curr_node->_PARENT;
 					};break;
 					case 'code': {

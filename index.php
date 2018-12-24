@@ -36,6 +36,5 @@ else
 			echo "\n\r[".$item->_TEXT."
 ]";
 	});
-	//print_r($compiled);
-//	the1utils\utils::mul_dbg($compiled);
+
 }
