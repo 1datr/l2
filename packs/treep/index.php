@@ -415,7 +415,7 @@ use the1utils\utils as utils;
 						}
 						$points_and_strings[]=$p;
 						
-						$pos_end = $p['point']->position;						
+						$pos_end = $p['point']->pos_end+1;						
 					/*	echo "[".$ms_code->getPositionCoords($pos_end)."]";
 						echo $_substr->content;
 						exit();*/
@@ -445,11 +445,9 @@ use the1utils\utils as utils;
 				
 				
 			}
-			
-			
+						
 			foreach($points_and_strings as $_pos => $p)
-			{
-					
+			{					
 				switch($p['layer'])
 				{
 					case 'start': {									
