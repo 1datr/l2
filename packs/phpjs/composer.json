@@ -1,0 +1,21 @@
+{
+    "name": "1datr/phpjs",
+    "description": "Universal tree code parser",
+    "type": "package",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anton Kuzmenko",
+            "email": "the1datr@ya.ru"
+        }
+    ],
+    "require": {
+    	"php": ">=5.4.0",
+    	"hnumerator" : "1.x",
+    	"the1utils" : "1.x",
+    	"treep" : "1.x"
+    },
+    "autoload":{
+    	"classmap":["src"]
+    }
+}

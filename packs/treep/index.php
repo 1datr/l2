@@ -277,7 +277,7 @@ use the1utils\utils as utils;
 		public function compile($params)
 		{
 			the1utils\utils::def_options(['comments'=>['#\/\*.*\*\/#Uis','#\/\/.*$#m'],
-					'delete_comments'=>true,
+					'delete_comments'=>true,'delete_spaces'=>true,
 			],$params);
 				
 			$ms_code = new MString($params['code']);
@@ -289,12 +289,7 @@ use the1utils\utils as utils;
 			$ms_code->eat('shields', 'nstart');
 			$ms_code->eat('shields', 'nend');
 			$ms_code->eat('comments', 'nstart');
-			$ms_code->eat('comments', 'nend');
-		/*	foreach($ms_code->getLayer('nstart')->points() as $p)
-			{
-				echo " ".$p->position;
-			}*/
-			
+			$ms_code->eat('comments', 'nend');				
 			
 			$numerator = new \hnumerator\HNnumerator();
 			$node_root = new tn_object(true);
@@ -316,26 +311,11 @@ use the1utils\utils as utils;
 			$pos_start = 0;
 			$pos_end = 0;
 			$binded=[];
-			return $this->_build_tree($ms_code);
-			
-			//$this->bind_pairs($ms_code,$curr_node,0,$binded);
-			/*
-			foreach($binded as $idx => $bnd)
-			{
-				echo "\n $idx : ";
-				//echo $bnd['start']->regexp_data[0][1];
-				echo "\n start : ".$bnd['start']->_LAYER->parent_mstr->getPositionCoords($bnd['start']->regexp_data[0][1])."\n";
-				print_r($bnd['start']->regexp_data[0][0]);
-				echo "\n end : ".$bnd['end']->_LAYER->parent_mstr->getPositionCoords($bnd['end']->regexp_data[0][1])."\n";
-				print_r($bnd['end']->regexp_data[0][0]);
-			}
-			*/
-		
-			return $curr_node;
-			
+			return $this->_build_tree($ms_code,$params);
+									
 		}
 		
-		private function _build_tree($ms_code)
+		private function _build_tree($ms_code,$params)
 		{
 			$str_to_eval='$root = $this->build_node($ms_code,['."\n\r";
 			$last_p=0;
@@ -387,6 +367,10 @@ use the1utils\utils as utils;
 				else
 				{	
 					$_substr = $ms_code->strbetween($pos_end,$p['point']->position-1);
+					if($params['delete_spaces'])
+					{
+						$_substr = new MString(ltrim(rtrim($_substr->content)));
+					}
 					//$_substr = $ms_code->strbetween($pos_last,$p['point']->position-1);
 				}
 			//	utils::mul_dbg($_substr->content);
@@ -400,10 +384,7 @@ use the1utils\utils as utils;
 							
 						}
 						$points_and_strings[]=$p;
-						$pos_end = $p['point']->pos_end+1;
-						
-					//	echo "[".$ms_code->getPositionCoords($pos_end)."]";
-						
+						$pos_end = $p['point']->pos_end+1;					
 						
 						$p_last=$p;
 					};break;
@@ -416,9 +397,7 @@ use the1utils\utils as utils;
 						$points_and_strings[]=$p;
 						
 						$pos_end = $p['point']->pos_end+1;						
-					/*	echo "[".$ms_code->getPositionCoords($pos_end)."]";
-						echo $_substr->content;
-						exit();*/
+					
 						$p_last=$p;
 					};break;
 					case 'comm_start': {						
@@ -429,17 +408,17 @@ use the1utils\utils as utils;
 						}
 						$pos_end = $p['point']->position;
 						
-					//	echo "[".$ms_code->getPositionCoords($pos_end)."]";
 					};break;
-					case 'comm_end': {					
+					case 'comm_end': {	
+						$_substr = $ms_code->strbetween($pos_end,$p['point']->position);
 						if($_substr->length()>0)
 						{
 							
 							$points_and_strings[]=['layer'=>'comment','str'=>$_substr];
 							$p_last=$p;
 						}
+						//$pos_end = $p['point']->pos_end;
 						$pos_end = $p['point']->position;						
-					//	echo "[".$ms_code->getPositionCoords($pos_end)."]";
 					};break;
 				}
 				
@@ -474,6 +453,8 @@ use the1utils\utils as utils;
 				}
 				
 			}
+			
+			$_root->numerate();
 			
 			return $_root;
 			

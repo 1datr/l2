@@ -52,6 +52,11 @@ namespace treep{
 			$this->ROOT = $root;
 		}
 	
+		function clear_items()
+		{
+			$this->_ITEMS=[];
+		}
+		
 		function add_strat_regexp($arr)
 		{
 			$this->_START_TAG_REGEXP_RESULT[]=$arr;
@@ -93,7 +98,7 @@ namespace treep{
 		
 	}
 	
-	class tn_comment
+	class tn_comment extends treep_node
 	{
 		VAR $_TEXT;
 		
